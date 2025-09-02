@@ -28,7 +28,7 @@ export function addVote(reviewId: string, userId: string, value: number) {
   const reviews = readReviews();
   const review = reviews.find((r) => r.id === reviewId);
   if (!review) throw new Error("Review no encontrada");
-  review.votes = review.votes.filter((v) => v.userId !== userId);
+  review.votes = review.votes.filter((v: { userId: string; }) => v.userId !== userId);
   review.votes.push({ userId, value });
   writeReviews(reviews);
 }
