@@ -29,10 +29,13 @@ function normalizeBook(item: any): Book {
   };
 }
 
+// Tomamos la URL base desde la variable de entorno
+const GOOGLE_BOOKS_API_URL = process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_URL;
+
 export async function searchBooks(query: string): Promise<SearchResult> {
-  const res = await fetch(
-    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`
-  );
+  if (!GOOGLE_BOOKS_API_URL) throw new Error("Variable de entorno NEXT_PUBLIC_GOOGLE_BOOKS_API_URL no definida");
+
+  const res = await fetch(`${GOOGLE_BOOKS_API_URL}/volumes?q=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error("Error buscando libros");
   const data = await res.json();
   return {
@@ -44,8 +47,10 @@ export async function searchBooks(query: string): Promise<SearchResult> {
 
 export async function getBookById(id: string): Promise<Book | null> {
   if (!id || id === "sin-id") return null;
+  if (!GOOGLE_BOOKS_API_URL) throw new Error("Variable de entorno NEXT_PUBLIC_GOOGLE_BOOKS_API_URL no definida");
+
   try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes/${id}`);
+    const res = await fetch(`${GOOGLE_BOOKS_API_URL}/volumes/${id}`);
     if (!res.ok) return null;
     const data = await res.json();
     return normalizeBook(data);
