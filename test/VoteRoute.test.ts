@@ -1,5 +1,5 @@
 import { PATCH } from "@/app/api/reviews/[id]/vote/route";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { vi } from "vitest";
 import { readReviews, addVote } from "@/lib/storage";
 
@@ -26,7 +26,7 @@ describe("Vote API", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    const response = await PATCH(req, { params: { id: "r1" } } as const);
+    const response = await PATCH(req, { params: Promise.resolve({ id: "r1" }) });
 
     expect(response.status).toBe(200);
     expect(addVote).toHaveBeenCalledWith("r1", "user1", 1);
@@ -39,7 +39,7 @@ describe("Vote API", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    const response = await PATCH(req, { params: { id: "r1" } } as const);
+    const response = await PATCH(req, { params: Promise.resolve({ id: "r1" }) });
 
     expect(response.status).toBe(400);
     const data = await response.json();
@@ -54,10 +54,10 @@ describe("Vote API", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    const response = await PATCH(req, { params: { id: "r2" } } as const);
+    const response = await PATCH(req, { params: Promise.resolve({ id: "r2" }) });
 
     expect(response.status).toBe(404);
     const data = await response.json();
-    expect(data).toMatchObject({ error: "Review not found" });
+    expect(data).toMatchObject({ error: "Reseña no encontrada" });
   });
 });

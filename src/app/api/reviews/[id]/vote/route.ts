@@ -4,18 +4,20 @@ import { reviews } from "@/app/api/reviews/data";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params;
   const { userId, value } = await req.json();
 
   if (!userId || ![1, -1].includes(value)) {
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
-
   const review = reviews.find((r) => r.id === id);
   if (!review) {
-    return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Reseña no encontrada" },
+      { status: 404 }
+    );
   }
 
   const existingVote = review.votes.find((v: Vote) => v.userId === userId);
