@@ -1,4 +1,4 @@
-import { PATCH } from "@/app/api/reviews/[id]/route";
+import { PATCH } from "@/app/api/reviews/[id]/vote/route";
 import { NextRequest, NextResponse } from "next/server";
 import { vi } from "vitest";
 import { readReviews, addVote } from "@/lib/storage";
