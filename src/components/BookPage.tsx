@@ -1,0 +1,1 @@
+      setRating(5);
