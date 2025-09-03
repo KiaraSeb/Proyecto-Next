@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📚 Proyecto Next – Buscador de Libros
 
-## Getting Started
+Aplicación web desarrollada en **Next.js** que permite buscar y consultar libros utilizando la **Google Books API**.  
+El proyecto está preparado para correr en **Vercel** y también con **Docker**, con imágenes publicadas en **GitHub Container Registry (GHCR)**.
 
-First, run the development server:
+---
 
-```bash
+## 🚀 Demo
+
+🔗 [Proyecto en Vercel](https://proyecto-next-eb5z.vercel.app)
+
+---
+
+## ⚙️ Tecnologías usadas
+
+- [Next.js](https://nextjs.org/) – Framework React para SSR/SSG.  
+- [TypeScript](https://www.typescriptlang.org/) – Tipado estático.  
+- [Google Books API](https://developers.google.com/books) – Fuente de datos.  
+- [Docker](https://www.docker.com/) – Contenerización.  
+- [GitHub Actions](https://docs.github.com/actions) – CI/CD con build y push de imágenes.  
+- [GHCR](https://ghcr.io) – Registro de contenedores.  
+
+---
+
+## 📂 Estructura 
+
+├── .github/workflows/ # Workflows de GitHub Actions
+├── lib/ # Funciones para consumir Google Books API
+├── pages/ # Rutas de Next.js
+├── public/ # Archivos estáticos
+├── Dockerfile # Configuración de imagen Docker
+├── package.json
+└── README.md
+
+
+---
+
+## 🔑 Variables de entorno
+
+Crear un archivo `.env.local` en desarrollo y `.env.production` para producción.  
+
+### `.env.local`
+# API de Google Books
+NEXT_PUBLIC_GOOGLE_BOOKS_API_URL="https://www.googleapis.com/books/v1"
+
+# Frontend URL en local
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+`.env.production`
+# API de Google Books
+NEXT_PUBLIC_GOOGLE_BOOKS_API_URL="https://www.googleapis.com/books/v1"
+
+# URL desplegada en Vercel
+NEXT_PUBLIC_APP_URL="https://proyecto-next-eb5z.vercel.app"
+
+⚠️ Nunca subas tus .env al repositorio.
+Usá .env.example como plantilla sin valores sensibles.
+
+## 🖥️ Instalación y ejecución local
+1. Clonar el repositorio:
+
+git clone https://github.com/KiaraSeb/Proyecto-Next.git
+cd Proyecto-Next
+
+2. Instalar dependencias:
+
+npm install
+
+3. Crear .env.local con las variables de entorno.
+
+4. Iniciar en desarrollo:
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Abrir en el navegador:
+http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🐳 Uso con Docker
+1. Construir la imagen:
+docker build -t proyecto-next .
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Correr el contenedor:
+docker run -p 3000:3000 proyecto-next
 
-## Learn More
+3. Abrir en:
+http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
+## 🔄 CI/CD con GitHub Actions
+Este repositorio tiene configurado un workflow (.github/workflows/docker.yml) que:
+- Construye la imagen Docker.
+- La publica en GitHub Container Registry (GHCR).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+La imagen se sube a:
+ghcr.io/kiaraseb/proyecto-next:latest
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Para autenticarse, se usa un Personal Access Token (PAT) guardado en los Secrets del repositorio (GHCR_PAT).
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📖 Funcionalidades
+- Buscar libros por título, autor o palabra clave.
+- Ver detalles de un libro.
+- Mostrar portada (si está disponible).
+- Manejo de errores si la API no responde o no encuentra resultados.
