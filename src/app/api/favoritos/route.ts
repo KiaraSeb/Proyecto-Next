@@ -1,12 +1,10 @@
-// app/api/favoritos/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";
 import Favorite from "@/models/Favorito";
 import { requireAuthAppRouter } from "@/lib/middleware";
 
 export async function GET(req: NextRequest) {
   await connectDB();
-
   const user = await requireAuthAppRouter(req);
   if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
@@ -16,14 +14,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await connectDB();
-
   const user = await requireAuthAppRouter(req);
   if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const { bookId } = await req.json();
-  if (!bookId) {
-    return NextResponse.json({ message: "Missing bookId" }, { status: 400 });
-  }
+  if (!bookId) return NextResponse.json({ message: "Missing bookId" }, { status: 400 });
 
   try {
     const fav = await Favorite.create({ userId: user._id, bookId });

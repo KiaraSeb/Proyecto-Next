@@ -1,6 +1,6 @@
-// /app/api/reviews/[id]/vote/route.ts
+// src/app/api/reviews/[id]/vote/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import  connectDB  from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";
 import Review from "@/models/Review";
 import Vote from "@/models/Vote";
 import { requireAuthAppRouter } from "@/lib/middleware";
@@ -8,52 +8,42 @@ import mongoose from "mongoose";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> } // 👈 importante
+  context: { params: Record<string, string | undefined> }
 ) {
   await connectDB();
-  const { id } = await context.params; // 👈 destructuración asíncrona
+  const id = context.params.id;
 
-  if (!mongoose.isValidObjectId(id)) {
+  if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
-  // Verificar usuario autenticado
   const user = await requireAuthAppRouter(req);
-  if (!user) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const typedUser = user as { _id: string | mongoose.Types.ObjectId };
 
   const { value } = await req.json();
   if (![1, -1].includes(Number(value))) {
     return NextResponse.json({ error: "Invalid vote value" }, { status: 400 });
   }
 
-  const reviewId = id;
-
-  // Buscar si ya existe el voto del usuario
-  const existing = await Vote.findOne({ userId: user._id, reviewId });
-
+  const existing = await Vote.findOne({ userId: typedUser._id, reviewId: id });
   if (existing) {
-    if (existing.value === value) {
-      await existing.deleteOne();
-    } else {
-      existing.value = value;
-      await existing.save();
-    }
+    if (existing.value === value) await existing.deleteOne();
+    else { existing.value = value; await existing.save(); }
   } else {
-    await Vote.create({ userId: user._id, reviewId, value });
+    await Vote.create({ userId: typedUser._id, reviewId: id, value });
   }
 
-  // Recalcular total de votos
+  // Recalcular total
   const agg = await Vote.aggregate([
-    { $match: { reviewId: new mongoose.Types.ObjectId(reviewId) } },
+    { $match: { reviewId: new mongoose.Types.ObjectId(id) } },
     { $group: { _id: "$reviewId", total: { $sum: "$value" } } },
   ]);
-
   const total = agg[0]?.total || 0;
 
-  await Review.findByIdAndUpdate(reviewId, { votes: total });
+  await Review.findByIdAndUpdate(id, { votes: total });
+  const updated = await Review.findById(id);
 
-  const updated = await Review.findById(reviewId);
   return NextResponse.json(updated, { status: 200 });
 }
