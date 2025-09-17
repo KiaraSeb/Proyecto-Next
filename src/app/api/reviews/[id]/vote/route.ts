@@ -1,22 +1,23 @@
-// src/app/api/reviews/[id]/vote/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";  // Default import
 import Review from "@/models/Review";
 import Vote from "@/models/Vote";
 import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 
+// PATCH: Handle voting on a review
 export async function PATCH(
   req: NextRequest,
-  context: { params: Record<string, string | undefined> }
+  context: { params: Promise<{ id: string }> }  // Use Promise type for Next.js 15
 ) {
   await connectDB();
-  const id = context.params.id;
 
+  const { id } = await context.params;  // Await the Promise
   if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
+  // Authenticate user
   const user = await requireAuthAppRouter(req);
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -27,23 +28,29 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid vote value" }, { status: 400 });
   }
 
+  // Check if user already voted
   const existing = await Vote.findOne({ userId: typedUser._id, reviewId: id });
+
   if (existing) {
-    if (existing.value === value) await existing.deleteOne();
-    else { existing.value = value; await existing.save(); }
+    if (existing.value === value) {
+      await existing.deleteOne();
+    } else {
+      existing.value = value;
+      await existing.save();
+    }
   } else {
     await Vote.create({ userId: typedUser._id, reviewId: id, value });
   }
 
-  // Recalcular total
+  // Recalculate total votes
   const agg = await Vote.aggregate([
     { $match: { reviewId: new mongoose.Types.ObjectId(id) } },
     { $group: { _id: "$reviewId", total: { $sum: "$value" } } },
   ]);
+
   const total = agg[0]?.total || 0;
-
   await Review.findByIdAndUpdate(id, { votes: total });
-  const updated = await Review.findById(id);
 
+  const updated = await Review.findById(id);
   return NextResponse.json(updated, { status: 200 });
 }
