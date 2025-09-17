@@ -1,17 +1,16 @@
-// src/app/api/reviews/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";  // Default import
 import Review from "@/models/Review";
 import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 
-// GET
+// GET: Retrieve a specific review by ID
 export async function GET(
   req: NextRequest,
-  context: { params: Record<string, string | undefined> }
+  context: { params: Promise<{ id: string }> }  // Use Promise type for Next.js 15
 ) {
   await connectDB();
-  const id = context.params.id;
+  const { id } = await context.params;  // Await the Promise
 
   if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -31,22 +30,29 @@ export async function GET(
   }, { status: 200 });
 }
 
-// PUT / PATCH
+// PUT / PATCH: Update a specific review
 export async function PUT(
   req: NextRequest,
-  context: { params: Record<string, string | undefined> }
-) { return updateReview(req, context.params.id); }
+  context: { params: Promise<{ id: string }> }  // Use Promise type
+) {
+  return updateReview(req, context);
+}
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Record<string, string | undefined> }
-) { return updateReview(req, context.params.id); }
+  context: { params: Promise<{ id: string }> }  // Use Promise type
+) {
+  return updateReview(req, context);
+}
 
-async function updateReview(req: NextRequest, id?: string) {
+async function updateReview(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }  // Use Promise type
+) {
   await connectDB();
-  if (!id || !mongoose.isValidObjectId(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
+  const { id } = await context.params;  // Await the Promise
+
+  if (!id || !mongoose.isValidObjectId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
   const user = await requireAuthAppRouter(req);
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -77,17 +83,15 @@ async function updateReview(req: NextRequest, id?: string) {
   }, { status: 200 });
 }
 
-// DELETE
+// DELETE: Delete a specific review
 export async function DELETE(
   req: NextRequest,
-  context: { params: Record<string, string | undefined> }
+  context: { params: Promise<{ id: string }> }  // Use Promise type
 ) {
   await connectDB();
-  const id = context.params.id;
+  const { id } = await context.params;  // Await the Promise
 
-  if (!id || !mongoose.isValidObjectId(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
+  if (!id || !mongoose.isValidObjectId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
   const user = await requireAuthAppRouter(req);
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -97,9 +101,7 @@ export async function DELETE(
   const review = await Review.findById(id);
   if (!review) return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
 
-  if (review.user.toString() !== typedUser._id.toString()) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  if (review.user.toString() !== typedUser._id.toString()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await review.deleteOne();
   return NextResponse.json({}, { status: 204 });
