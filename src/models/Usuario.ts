@@ -5,7 +5,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  comparePassword(candidate: string): Promise<boolean>; // <-- útil en login
+  comparePassword(candidate: string): Promise<boolean>;
 }
 
 const UserSchema: Schema<IUser> = new Schema(
@@ -17,20 +17,17 @@ const UserSchema: Schema<IUser> = new Schema(
   { timestamps: true }
 );
 
-// Middleware para hashear contraseña
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    return next();
+    next();
   } catch (err) {
-    return next(err as any);
+    next(err as any);
   }
 });
 
-// Método para comparar contraseñas
 UserSchema.methods.comparePassword = function (candidate: string) {
   return bcrypt.compare(candidate, this.password);
 };
