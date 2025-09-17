@@ -19,15 +19,13 @@ function ReviewListComponent({ bookId }: Props, ref: React.Ref<ReviewListRef>) {
     fetchReviews();
   }, [bookId]);
 
-  useImperativeHandle(ref, () => ({
-    reload: fetchReviews,
-  }));
+  useImperativeHandle(ref, () => ({ reload: fetchReviews }));
 
   const vote = async (id: string, value: number) => {
-    await fetch(`/api/reviews/${id}`, {
+    await fetch(`/api/reviews/${id}/vote`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: "usuario-demo", value }),
+      body: JSON.stringify({ value }),
     });
     fetchReviews();
   };
@@ -35,20 +33,20 @@ function ReviewListComponent({ bookId }: Props, ref: React.Ref<ReviewListRef>) {
   return (
     <div className="mt-4">
       {reviews.map((r) => (
-        <div key={r.id} className="border p-3 mb-2 rounded">
+        <div key={r._id} className="border p-3 mb-2 rounded">
           <p className="font-bold">
-            {r.userName} ({r.rating}★)
+            {r.user.email} ({r.rating}★)
           </p>
-          <p>{r.content}</p>
+          <p>{r.text}</p>
           <div className="flex gap-2 mt-2">
             <button
-              onClick={() => vote(r.id, 1)}
+              onClick={() => vote(r._id, 1)}
               className="px-2 bg-blue-500 text-white rounded"
             >
               👍 {r.votes.filter((v) => v.value === 1).length}
             </button>
             <button
-              onClick={() => vote(r.id, -1)}
+              onClick={() => vote(r._id, -1)}
               className="px-2 bg-red-500 text-white rounded"
             >
               👎 {r.votes.filter((v) => v.value === -1).length}

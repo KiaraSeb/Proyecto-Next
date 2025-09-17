@@ -1,49 +1,51 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import connectDB from "@/lib/mongodb";
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
 import Review from "@/models/Review";
-import Vote from "@/models/Vote";
-import { requireAuth } from "@/lib/middleware";
+import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   await connectDB();
-  const { id } = req.query;
-  if (!mongoose.isValidObjectId(String(id))) return res.status(400).json({ error: "Invalid id" });
+  const { id } = params;
 
-  if (req.method !== "PATCH") {
-    res.setHeader("Allow", ["PATCH"]);
-    return res.status(405).end();
+  if (!mongoose.isValidObjectId(id)) {
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  const user = await requireAuth(req, res);
-  if (!user) return;
+  const user = await requireAuthAppRouter(req);
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const { value } = req.body; // 1 or -1
-  if (![1, -1].includes(Number(value))) return res.status(400).json({ error: "Invalid vote value" });
+  const body = await req.json();
 
-  const reviewId = id as string;
-  // Upsert vote
-  const existing = await Vote.findOne({ userId: (user as any)._id, reviewId });
-  if (existing) {
-    if (existing.value === value) {
-      // remove vote
-      await existing.remove();
-    } else {
-      existing.value = value;
-      await existing.save();
-    }
-  } else {
-    await Vote.create({ userId: (user as any)._id, reviewId, value });
+  const review = await Review.findById(id);
+  if (!review) return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
+
+  if (review.user.toString() !== user._id.toString()) {
+    return NextResponse.json({ error: "No puedes editar reseñas de otros" }, { status: 403 });
   }
 
-  // Recalculate votes (simple approach)
-  const agg = await Vote.aggregate([
-    { $match: { reviewId: new mongoose.Types.ObjectId(reviewId) } },
-    { $group: { _id: "$reviewId", total: { $sum: "$value" } } }
-  ]);
-  const total = (agg[0] && agg[0].total) || 0;
-  await Review.findByIdAndUpdate(reviewId, { votes: total });
+  review.text = body.text ?? review.text;
+  review.rating = body.rating ?? review.rating;
+  await review.save();
 
-  const updated = await Review.findById(reviewId);
-  return res.json({ review: updated });
+  return NextResponse.json(review, { status: 200 });
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  await connectDB();
+  const { id } = params;
+
+  const user = await requireAuthAppRouter(req);
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const review = await Review.findById(id);
+  if (!review) return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
+
+  if (review.user.toString() !== user._id.toString()) {
+    return NextResponse.json({ error: "No puedes eliminar reseñas de otros" }, { status: 403 });
+  }
+
+  await review.deleteOne();
+
+  return NextResponse.json({ message: "Reseña eliminada" }, { status: 200 });
 }

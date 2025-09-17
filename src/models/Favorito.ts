@@ -1,13 +1,15 @@
-import { Schema, model, models, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-const FavoritoSchema = new Schema(
-  {
-    user: { type: Types.ObjectId, ref: "User", required: true },
-    bookId: { type: String, required: true },
-  },
-  { timestamps: true }
-);
+export interface IFavorite extends Document {
+  bookId: string;
+  userId: mongoose.Types.ObjectId;
+}
 
-const Favorito = models.Favorito || model("Favorito", FavoritoSchema);
+const FavoriteSchema = new Schema<IFavorite>({
+  bookId: { type: String, required: true },
+  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
+}, { timestamps: true });
 
-export default Favorito;
+FavoriteSchema.index({ bookId: 1, userId: 1 }, { unique: true });
+
+export default mongoose.models.Favorite || mongoose.model("Favorite", FavoriteSchema);

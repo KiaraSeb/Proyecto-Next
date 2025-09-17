@@ -1,51 +1,37 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { connectDB } from "c:/Users/Usuario/OneDrive - uap.edu.ar/Escritorio/proyecto-next/src/lib/mongodb";
+// app/api/favoritos/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
 import Favorite from "@/models/Favorito";
-import { requireAuth } from "@/lib/middleware";
-import { z } from "zod";
+import { requireAuthAppRouter } from "@/lib/middleware";
 
-// ✅ Esquema de validación con Zod
-const favoriteSchema = z.object({
-  bookId: z.string().min(1, "Book ID is required"),
-});
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req: NextRequest) {
   await connectDB();
 
-  if (req.method === "POST") {
-    const user = await requireAuth(req, res);
-    if (!user) return;
+  const user = await requireAuthAppRouter(req);
+  if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    try {
-      const parsed = favoriteSchema.parse(req.body); // valida el body
-      const fav = await Favorite.create({
-        userId: (user as any)._id,
-        bookId: parsed.bookId,
-      });
-      return res.status(201).json({ fav });
-    } catch (err: any) {
-      if (err.code === 11000) {
-        return res.status(409).json({ message: "Already in favorites" });
-      }
-      if (err.name === "ZodError") {
-        return res.status(400).json({ message: err.errors });
-      }
-      return res.status(500).json({ message: "Internal server error" });
-    }
+  const favs = await Favorite.find({ userId: user._id });
+  return NextResponse.json({ favorites: favs }, { status: 200 });
+}
+
+export async function POST(req: NextRequest) {
+  await connectDB();
+
+  const user = await requireAuthAppRouter(req);
+  if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+  const { bookId } = await req.json();
+  if (!bookId) {
+    return NextResponse.json({ message: "Missing bookId" }, { status: 400 });
   }
 
-  if (req.method === "GET") {
-    const user = await requireAuth(req, res);
-    if (!user) return;
-
-    try {
-      const favs = await Favorite.find({ userId: (user as any)._id });
-      return res.status(200).json({ favorites: favs });
-    } catch (err: any) {
-      return res.status(500).json({ message: "Internal server error" });
+  try {
+    const fav = await Favorite.create({ userId: user._id, bookId });
+    return NextResponse.json({ favorite: fav }, { status: 201 });
+  } catch (err: any) {
+    if (err.code === 11000) {
+      return NextResponse.json({ message: "Already in favorites" }, { status: 409 });
     }
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
-
-  res.setHeader("Allow", ["GET", "POST"]);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

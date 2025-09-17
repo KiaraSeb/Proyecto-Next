@@ -1,45 +1,94 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import connectDB from "@/lib/mongodb";
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
 import Review from "@/models/Review";
-import { requireAuth } from "@/lib/middleware";
+import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   await connectDB();
-  const { id } = req.query;
-  if (!mongoose.isValidObjectId(String(id))) return res.status(400).json({ error: "Invalid id" });
+  const { id } = params;
 
-  if (req.method === "GET") {
-    const review = await Review.findById(id).populate("userId", "email name");
-    if (!review) return res.status(404).json({ error: "Reseña no encontrada" });
-    return res.json({ review });
+  if (!mongoose.isValidObjectId(id)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
-  if (req.method === "PUT" || req.method === "PATCH") {
-    const user = await requireAuth(req, res);
-    if (!user) return;
-    const review = await Review.findById(id);
-    if (!review) return res.status(404).json({ error: "Reseña no encontrada" });
-    if (review.userId.toString() !== (user as any)._id.toString()) return res.status(403).json({ error: "Forbidden" });
-
-    const { title, content, rating } = req.body;
-    if (title !== undefined) review.title = title;
-    if (content !== undefined) review.content = content;
-    if (rating !== undefined) review.rating = rating;
-    await review.save();
-    return res.json({ review });
+  const review = await Review.findById(id).populate("userId", "email");
+  if (!review) {
+    return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
   }
 
-  if (req.method === "DELETE") {
-    const user = await requireAuth(req, res);
-    if (!user) return;
-    const review = await Review.findById(id);
-    if (!review) return res.status(404).json({ error: "Reseña no encontrada" });
-    if (review.userId.toString() !== (user as any)._id.toString()) return res.status(403).json({ error: "Forbidden" });
-    await review.remove();
-    return res.status(204).end();
+  return NextResponse.json(review, { status: 200 });
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return updateReview(req, params.id);
+}
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return updateReview(req, params.id);
+}
+
+async function updateReview(req: NextRequest, id: string) {
+  await connectDB();
+  if (!mongoose.isValidObjectId(id)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
-  res.setHeader("Allow", ["GET", "PUT", "PATCH", "DELETE"]);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  const user = await requireAuthAppRouter(req);
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const review = await Review.findById(id);
+  if (!review) {
+    return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
+  }
+
+  if (review.userId.toString() !== user._id.toString()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { content, rating } = await req.json();
+  if (content !== undefined) review.content = content;
+  if (rating !== undefined) review.rating = rating;
+
+  await review.save();
+  return NextResponse.json(review, { status: 200 });
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  await connectDB();
+  const { id } = params;
+
+  if (!mongoose.isValidObjectId(id)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  }
+
+  const user = await requireAuthAppRouter(req);
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const review = await Review.findById(id);
+  if (!review) {
+    return NextResponse.json({ error: "Reseña no encontrada" }, { status: 404 });
+  }
+
+  if (review.userId.toString() !== user._id.toString()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await review.deleteOne();
+  return NextResponse.json({}, { status: 204 });
 }

@@ -9,9 +9,9 @@ import type { NextApiHandler } from "next";
 import http from "http";
 
 // Importamos los handlers directamente
-import registerHandler from "../src/app/api/auth/register";
-import loginHandler from "../src/app/api/auth/login";
-import meHandler from "../src/app/api/auth/me";
+import registerHandler from "../src/app/api/auth/register/route";
+import loginHandler from "../src/app/api/auth/login/route";
+import meHandler from "../src/app/api/auth/me/route";
 import favIndexHandler from "../src/app/api/favoritos/index";
 import favIdHandler from "../src/app/api/favoritos/[id]";
 

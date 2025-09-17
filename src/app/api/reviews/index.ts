@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import connectDB from "@/lib/mongodb";
+import {connectDB} from "@/lib/mongodb";
 import Review from "@/models/Review";
 import { requireAuth } from "@/lib/middleware";
 
