@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";  // Default import
+import connectDB from "@/lib/mongodb";
 import Review from "@/models/Review";
 import Vote from "@/models/Vote";
 import { requireAuthAppRouter } from "@/lib/middleware";
@@ -8,18 +8,20 @@ import mongoose from "mongoose";
 // PATCH: Handle voting on a review
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }  // Use Promise type for Next.js 15
+  context: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
 
-  const { id } = await context.params;  // Await the Promise
+  const { id } = await context.params;
   if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
   // Authenticate user
   const user = await requireAuthAppRouter(req);
-  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
 
   const typedUser = user as { _id: string | mongoose.Types.ObjectId };
 
