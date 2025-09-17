@@ -2,13 +2,13 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IFavorite extends Document {
   bookId: string;
-  userId: Types.ObjectId; // ✅ usar Types.ObjectId
+  userId: Types.ObjectId;
 }
 
 const FavoriteSchema = new Schema<IFavorite>(
   {
     bookId: { type: String, required: true },
-    userId: { type: Types.ObjectId, ref: "User", required: true }, // ✅ Types.ObjectId
+    userId: { type: Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
