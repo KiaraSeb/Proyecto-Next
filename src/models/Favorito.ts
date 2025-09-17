@@ -1,14 +1,14 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IFavorite extends Document {
   bookId: string;
-  userId: Types.ObjectId;
+  userId: mongoose.Types.ObjectId; // para TypeScript
 }
 
 const FavoriteSchema = new Schema<IFavorite>(
   {
     bookId: { type: String, required: true },
-    userId: { type: Types.ObjectId, ref: "User", required: true },
+    userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
