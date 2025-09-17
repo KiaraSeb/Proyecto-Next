@@ -4,9 +4,11 @@ export interface Vote {
 }
 
 export interface Review {
+  id: string;
   _id: string;       // id de la reseña en la base de datos
   bookId: string;
-  user: {            // usuario que escribió la reseña
+  user: {
+    name: string;            // usuario que escribió la reseña
     _id: string;
     email: string;
   };

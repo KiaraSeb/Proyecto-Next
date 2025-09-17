@@ -1,22 +1,23 @@
-// /app/api/reviews/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";  // Default import
 import Review from "@/models/Review";
 import { requireAuthAppRouter } from "@/lib/middleware";
+import mongoose from "mongoose";
 
+// GET /api/reviews?bookId=...
 export async function GET(req: NextRequest) {
   await connectDB();
 
   const { searchParams } = new URL(req.url);
   const bookId = searchParams.get("bookId");
-  if (!bookId) {
-    return NextResponse.json({ error: "bookId requerido" }, { status: 400 });
+  if (!bookId || !mongoose.isValidObjectId(bookId)) {
+    return NextResponse.json({ error: "bookId inválido o faltante" }, { status: 400 });
   }
 
   // Buscar reseñas y hacer populate del usuario
   const reviews = await Review.find({ bookId }).populate("user", "email");
 
-  // Formatear para que el frontend reciba userId y userEmail
+  // Formatear para frontend
   const formatted = reviews.map((r) => ({
     id: r._id,
     bookId: r.bookId,
@@ -30,37 +31,42 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(formatted, { status: 200 });
 }
 
+// POST /api/reviews
 export async function POST(req: NextRequest) {
   await connectDB();
 
   const user = await requireAuthAppRouter(req);
-  if (!user) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const typedUser = user as { _id: string | mongoose.Types.ObjectId; email?: string };
 
   const { bookId, rating, content } = await req.json();
 
-  if (!bookId || !content) {
-    return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
+  if (!bookId || !content || !mongoose.isValidObjectId(bookId)) {
+    return NextResponse.json({ error: "Datos incompletos o bookId inválido" }, { status: 400 });
   }
 
-  const newReview = await Review.create({
-    bookId,
-    user: user._id, // coincide con el schema
-    rating,
-    text: content,
-  });
+  try {
+    const newReview = await Review.create({
+      bookId,
+      user: typedUser._id, // coincide con schema
+      rating,
+      text: content,
+    });
 
-  // Incluir userId y userEmail en la respuesta
-  const response = {
-    id: newReview._id,
-    bookId: newReview.bookId,
-    rating: newReview.rating,
-    content: newReview.text,
-    createdAt: newReview.createdAt,
-    userId: user._id,
-    userEmail: user.email,
-  };
+    // Formatear respuesta
+    const response = {
+      id: newReview._id,
+      bookId: newReview.bookId,
+      rating: newReview.rating,
+      content: newReview.text,
+      createdAt: newReview.createdAt,
+      userId: typedUser._id,
+      userEmail: typedUser.email,
+    };
 
-  return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(response, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

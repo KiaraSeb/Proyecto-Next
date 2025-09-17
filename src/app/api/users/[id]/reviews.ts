@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";
 import { requireAuthAppRouter } from "@/lib/middleware";
 import Review from "@/models/Review";
 import mongoose from "mongoose";
@@ -23,7 +23,8 @@ export async function GET(
   }
 
   // Si querés restringir que SOLO el dueño pueda ver sus reseñas:
-  if (user._id.toString() !== id.toString()) {
+  const typedUser = user as { _id: string | { toString(): string } };
+  if (typedUser._id.toString() !== id.toString()) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 

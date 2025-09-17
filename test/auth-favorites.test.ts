@@ -12,8 +12,8 @@ import http from "http";
 import registerHandler from "../src/app/api/auth/register/route";
 import loginHandler from "../src/app/api/auth/login/route";
 import meHandler from "../src/app/api/auth/me/route";
-import favIndexHandler from "../src/app/api/favoritos/index";
-import favIdHandler from "../src/app/api/favoritos/[id]";
+import favIndexHandler from "../src/app/api/favoritos/route";
+import favIdHandler from "../src/app/api/favoritos/[id]/route";
 
 // Helper para convertir un NextApiHandler en un servidor HTTP compatible con supertest
 function handlerToServer(handler: NextApiHandler) {
