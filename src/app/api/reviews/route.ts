@@ -4,7 +4,6 @@ import Review from "@/models/Review";
 import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 
-// GET /api/reviews?bookId=...
 export async function GET(req: NextRequest) {
   await connectDB();
 
@@ -32,7 +31,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(formatted, { status: 200 });
 }
 
-// POST /api/reviews
 export async function POST(req: NextRequest) {
   await connectDB();
 

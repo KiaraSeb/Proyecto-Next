@@ -29,7 +29,7 @@ export default function LoginPage() {
       }
 
       alert("Inicio de sesión exitoso ✅");
-      router.push("/"); // redirige al home o al libro que quieras
+      router.push("/"); 
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -16,13 +16,11 @@ export async function GET(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  // Verificar sesión (opcional: si querés que solo el mismo usuario pueda ver sus reseñas)
   const user = await requireAuthAppRouter(req);
   if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  // Si querés restringir que SOLO el dueño pueda ver sus reseñas:
   const typedUser = user as { _id: string | { toString(): string } };
   if (typedUser._id.toString() !== id.toString()) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });

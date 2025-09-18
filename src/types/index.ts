@@ -1,19 +1,19 @@
 export interface Vote {
-  userId: string;    // id del usuario que votó
-  value: number;     // 1 o -1
+  userId: string;   
+  value: number;    
 }
 
 export interface Review {
   id: string;
-  _id: string;       // id de la reseña en la base de datos
+  _id: string;      
   bookId: string;
   user: {
-    name: string;            // usuario que escribió la reseña
+    name: string;          
     _id: string;
     email: string;
   };
   rating: number;
-  text: string;      // contenido de la reseña
+  text: string;    
   createdAt: string; 
-  votes: Vote[];     // array de votos
+  votes: Vote[];   
 }

@@ -5,13 +5,12 @@ import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 import { IUser } from "@/models/Usuario";
 
-// GET: Retrieve a specific review by ID
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
-  const { id } = await context.params; // 👈 usar await
+  const { id } = await context.params; 
 
   if (!id || !mongoose.isValidObjectId(id)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -36,7 +35,6 @@ export async function GET(
   );
 }
 
-// PUT / PATCH: Update a specific review
 export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -96,7 +94,6 @@ async function updateReview(
   );
 }
 
-// DELETE: Delete a specific review
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }

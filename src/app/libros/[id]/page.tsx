@@ -1,11 +1,11 @@
 import BookPage from "@/components/BookPage";
 
 interface PageProps {
-  params: Promise<{ id: string }>; // 👈 en App Router los params son async
+  params: Promise<{ id: string }>;
 }
 
 export default async function Page({ params }: PageProps) {
-  const { id } = await params; // ✅ hay que await
+  const { id } = await params; 
   if (!id) {
     return <p className="text-red-500">No se recibió un ID de libro.</p>;
   }

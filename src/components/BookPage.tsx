@@ -22,7 +22,7 @@ export default function BookPage({ bookId }: BookPageProps) {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" }) // incluye cookies
+    fetch("/api/auth/me", { credentials: "include" }) 
       .then((res) => res.json())
       .then((data) => setUser(data.user))
       .catch(() => setUser(null));
@@ -94,7 +94,7 @@ export default function BookPage({ bookId }: BookPageProps) {
         const res = await fetch(`/api/reviews/${reviewId}/vote`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // <-- necesario
+          credentials: "include",
           body: JSON.stringify({ value }),
         });
         if (!res.ok) throw new Error("No se pudo votar la reseña");
@@ -253,7 +253,6 @@ export default function BookPage({ bookId }: BookPageProps) {
   );
 }
 
-// --- Componente de Modal de Login/Registro ---
 function AuthModal({
   onSuccess,
   onClose,
@@ -284,7 +283,7 @@ function AuthModal({
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // <- importante para setear cookie
+        credentials: "include", 
         body: JSON.stringify(body),
       });
 

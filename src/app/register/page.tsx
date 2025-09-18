@@ -19,7 +19,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }), // solo email y password
+        body: JSON.stringify({ email, password }), 
       });
 
       const data = await res.json();
@@ -29,7 +29,7 @@ export default function RegisterPage() {
       }
 
       alert("Cuenta creada con éxito 🎉");
-      router.push("/login"); // luego del registro redirige a login
+      router.push("/login");
     } catch (err: any) {
       setError(err.message);
     } finally {

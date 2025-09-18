@@ -29,12 +29,10 @@ function normalizeBook(item: any): Book {
   };
 }
 
-// 🌍 Variable de entorno con fallback
 const GOOGLE_BOOKS_API_URL =
   process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_URL ||
   "https://www.googleapis.com/books/v1";
 
-// Solo advertimos, no rompemos el build
 if (!process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_URL) {
   console.warn(
     "⚠️ NEXT_PUBLIC_GOOGLE_BOOKS_API_URL no está definida en el .env, usando la URL por defecto."

@@ -5,7 +5,6 @@ import Vote from "@/models/Vote";
 import { requireAuthAppRouter } from "@/lib/middleware";
 import mongoose from "mongoose";
 
-// PATCH: Handle voting on a review
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -17,7 +16,6 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
-  // Authenticate user
   const user = await requireAuthAppRouter(req);
   if (!user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -30,7 +28,6 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid vote value" }, { status: 400 });
   }
 
-  // Check if user already voted
   const existing = await Vote.findOne({ userId: typedUser._id, reviewId: id });
 
   if (existing) {
@@ -44,7 +41,6 @@ export async function PATCH(
     await Vote.create({ userId: typedUser._id, reviewId: id, value });
   }
 
-  // Recalculate total votes
   const agg = await Vote.aggregate([
     { $match: { reviewId: new mongoose.Types.ObjectId(id) } },
     { $group: { _id: "$reviewId", total: { $sum: "$value" } } },

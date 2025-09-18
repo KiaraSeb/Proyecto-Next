@@ -10,7 +10,6 @@ async function main() {
   await mongoose.connect(MONGODB_URI);
   const data = JSON.parse(fs.readFileSync("data/reviews.json", "utf8"));
   for (const r of data) {
-    // buscar o crear user por email placeholder
     let user = await User.findOne({ email: r.userEmail });
     if (!user) {
       user = await User.create({ email: r.userEmail || `user${Date.now()}@local`, password: "fakehashed" });

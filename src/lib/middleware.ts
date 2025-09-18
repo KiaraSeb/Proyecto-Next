@@ -8,7 +8,7 @@ export async function requireAuthAppRouter(req: NextRequest): Promise<IUser | nu
 
   try {
     const payload: any = verifyToken(token);
-    const user = await User.findById<IUser>(payload.userId); // Tipado explícito
+    const user = await User.findById<IUser>(payload.userId); 
     return user || null;
   } catch {
     return null;
