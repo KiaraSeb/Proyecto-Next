@@ -1,15 +1,15 @@
-import { Schema, model, models, Types, Document } from "mongoose";
+import mongoose, { Schema, model, models, Document } from "mongoose";
 
 export interface IVote extends Document {
-  review: Types.ObjectId;
-  user: Types.ObjectId;
+  review: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   value: 1 | -1;
 }
 
 const VoteSchema = new Schema<IVote>(
   {
-    review: { type: Types.ObjectId, ref: "Review", required: true },
-    user: { type: Types.ObjectId, ref: "User", required: true },
+    review: { type: mongoose.Schema.Types.ObjectId, ref: "Review", required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     value: { type: Number, enum: [1, -1], required: true },
   },
   { timestamps: true }
